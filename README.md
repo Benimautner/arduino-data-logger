@@ -8,3 +8,7 @@
 
 ### Dependencies:
 - libssl-dev
+
+
+### Tested on:
+- ESP32 Dev Module
