@@ -1,0 +1,6 @@
+[submodule "cpp/cpp-httplib"]
+	path = cpp/cpp-httplib
+	url = https://github.com/yhirose/cpp-httplib
+[submodule "cpp/influxdb-cxx"]
+	path = cpp/influxdb-cxx
+	url = https://github.com/awegrzyn/influxdb-cxx
