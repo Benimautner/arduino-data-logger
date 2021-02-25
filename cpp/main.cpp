@@ -46,12 +46,12 @@ int main() {
 
 			std::cout << "Device Id: " << devid << std::endl;
 			for(boost::property_tree::ptree::value_type &measurement : pt.get_child("measurements")) {	
-			std::cout << "Inserting Property Name: " << measurement.first << " | With value: " << measurement.second.data() << std::endl;
+				std::cout << "Inserting Property Name: " << measurement.first << " | With value: " << measurement.second.data(); << std::endl;
 				
 				int success =  influxdb_cpp::builder()
 					.meas(measurement.first)
 					.tag("devid", s)
-					.field("value", std::stoi(measurement.second.data()), 1)
+					.field("value", std::stod(measurement.second.data()), 2)
 					.post_http(si);
 				std::cout << "Write code: " << success << std::endl;
 				if(success != 0) { std::cout << "Error writing to database: " << success << std::endl; }
