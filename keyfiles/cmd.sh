@@ -1,6 +1,6 @@
-openssl req -nodes -x509 -days 358000 -newkey rsa:2048 -keyout ca.key -out ca.crt -subj "/emailAddress=benimautner@gmail.com"
+openssl req -nodes -x509 -days 358000 -newkey rsa:2048 -keyout ca.key -out ca.crt -subj "/emailAddress=example@example.com"
 
-openssl req -nodes -newkey rsa:2048 -days 358000 -keyout server.key -out server.csr -subj "/emailAddress=benimautner@gmail.com"
+openssl req -nodes -newkey rsa:2048 -days 358000 -keyout server.key -out server.csr -subj "/emailAddress=example@example.com"
 
 openssl x509 -req -days 358000 -in server.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out server.crt
 
