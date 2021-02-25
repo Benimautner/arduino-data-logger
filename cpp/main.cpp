@@ -1,5 +1,5 @@
 #define CPPHTTPLIB_OPENSSL_SUPPORT
-#include <httplib.h>
+#include "./cpp-httplib/httplib.h"
 #include <stdio.h>
 #include <sstream>
 #include "influxdb.hpp"
@@ -7,8 +7,8 @@
 #include "../keyfiles/secret.h"
 
 
-#define CERT_FILE "../keyfiles/yar.pem"
-#define KEY_FILE "../keyfiles/yar-key.pem"
+#define CERT_FILE "../keyfiles/server.crt"
+#define KEY_FILE "../keyfiles/server.key"
 
 
 int main() {
@@ -28,7 +28,7 @@ int main() {
 			int devid(0);
 			std::stringstream received_string;
 			received_string << req.body;
-			
+			string secret = SECRET;
 			boost::property_tree::ptree pt;
 			try {
 				boost::property_tree::read_json(received_string, pt);

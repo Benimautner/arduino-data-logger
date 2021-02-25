@@ -1,1 +1,7 @@
 *.pem
+*defines.h
+keyfiles/*.crt
+keyfiles/*.key
+keyfiles/*.srl
+keyfiles/*.csr
+cpp/server

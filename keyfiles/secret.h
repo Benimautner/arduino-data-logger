@@ -1,2 +1,2 @@
-std::string secret = "hahahahahahayoullneverguessthis";
+#define SECRET "hahahahahahayoullneverguessthis";
 
