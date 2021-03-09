@@ -10,6 +10,11 @@
 #define CERT_FILE "../keyfiles/server.crt"
 #define KEY_FILE "../keyfiles/server.key"
 
+bool test_if_file_exists(const std::string& name) {
+    struct stat buf;
+    return (stat (name.c_str(), &buf) == 0);
+}
+
 
 int main() {
 	using namespace httplib;
@@ -18,6 +23,14 @@ int main() {
 	influxdb_cpp::server_info si("127.0.0.1",8086, "data");
 
 	std::cout << "------------------ ESP SERVER ----------------" << std::endl;
+	if(!test_if_file_exists(CERT_FILE)) {
+	    std::cout << "Couldn't find CERT file." << std::endl;
+	    return 1;
+	}
+	if(!test_if_file_exists(KEY_FILE)) {
+	    std::cout << "Couldn't find KEY file." << std::endl;
+	    return 1;
+	}
 
 	svr.Get("/text", [](const Request &req, Response &res) {
 			std::cout << "Request received" << std::endl;
