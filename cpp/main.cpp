@@ -25,13 +25,13 @@ int main() {
 			});
 
 	svr.Post("/submit", [&si](const Request &req, Response &res) {
-			int devid(0);
-			std::stringstream received_string;
-			received_string << req.body;
-			string secret = SECRET;
-			boost::property_tree::ptree pt;
+			int devid(0);					
+			std::stringstream received_string;					// stringstream containing request body (data)
+			received_string << req.body;						// putting data into stringstream
+			string secret = SECRET;							// creating string with constant secret
+			boost::property_tree::ptree pt;						// property tree is almost like a dictionary (key & value pairs) 
 			try {
-				boost::property_tree::read_json(received_string, pt);
+				boost::property_tree::read_json(received_string, pt);		// filling property tree
 				devid = std::stoi(pt.get<std::string>("devid"));
 				if(pt.get<std::string>("key") != secret) {
 					throw;
@@ -59,7 +59,6 @@ int main() {
 			std::cout << std::endl << std::endl;
 			
 			res.set_content("success", "text/html");
-
 
 
 			return;
