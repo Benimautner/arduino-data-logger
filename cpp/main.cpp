@@ -42,11 +42,11 @@ int main() {
 			}
 		
 			char s[11];
-			sprintf(s,"%ld", devid);
+			sprintf(s,"%d", devid);
 
 			std::cout << "Device Id: " << devid << std::endl;
 			for(boost::property_tree::ptree::value_type &measurement : pt.get_child("measurements")) {	
-				std::cout << "Inserting Property Name: " << measurement.first << " | With value: " << measurement.second.data(); << std::endl;
+				std::cout << "Inserting Property Name: " << measurement.first << " | With value: " << measurement.second.data() << std::endl;
 				
 				int success =  influxdb_cpp::builder()
 					.meas(measurement.first)
@@ -66,6 +66,7 @@ int main() {
 			});
 	
 	svr.listen("0.0.0.0", 4445);
+	std::cout << "Server Stopped" << std::endl;
 	return 0;
 
 }
