@@ -5,7 +5,7 @@
 #include "influxdb.hpp"
 #include <boost/property_tree/json_parser.hpp>
 #include "../keyfiles/secret.h"
-
+#define ERR_MISSING_FILES_CORR "Run cmd.sh in /keyfiles and check that you're executing from the right directory"
 
 #define CERT_FILE "../keyfiles/server.crt"
 #define KEY_FILE "../keyfiles/server.key"
@@ -24,11 +24,13 @@ int main() {
 
 	std::cout << "------------------ ESP SERVER ----------------" << std::endl;
 	if(!test_if_file_exists(CERT_FILE)) {
-	    std::cout << "Couldn't find CERT file." << std::endl;
+	    std::cout << "Couldn't find CERT file." << std::endl
+	    << ERR_MISSING_FILES_CORR << std::endl;
 	    return 1;
 	}
 	if(!test_if_file_exists(KEY_FILE)) {
-	    std::cout << "Couldn't find KEY file." << std::endl;
+	    std::cout << "Couldn't find KEY file." << std::endl
+	    << ERR_MISSING_FILES_CORR << std::endl;
 	    return 1;
 	}
 
