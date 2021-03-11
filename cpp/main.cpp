@@ -4,6 +4,8 @@
 #include <sstream>
 #include <utility>
 #include <vector>
+#include <iostream>
+#include <iomanip>
 #include "influxdb.hpp"
 #include <boost/property_tree/json_parser.hpp>
 #include "../keyfiles/secret.h"
@@ -103,16 +105,18 @@ int main() {
 			sprintf(s,"%d", devid);
 
 			std::cout << "Device Id: " << devid << std::endl;
-			for(boost::property_tree::ptree::value_type &measurement : pt.get_child("measurements")) {	
-				std::cout << "Inserting Property Name: " << measurement.first << " | With value: " << measurement.second.data() << std::endl;
+			int value_location = 50;
+			for(boost::property_tree::ptree::value_type &measurement : pt.get_child("measurements")) {
+				string property_string = "Property: " + measurement.first;
+				std::cout << property_string << setw(value_location - property_string.length()) << " | value: " << measurement.second.data() << std::endl;
 				
-				int success =  influxdb_cpp::builder()
+				int success_code =  influxdb_cpp::builder()
 					.meas(measurement.first)
 					.tag("devid", s)
 					.field("value", std::stod(measurement.second.data()), 2)
 					.post_http(si);
-				std::cout << "Write code: " << success << std::endl;
-				if(success != 0) { std::cout << "Error writing to database: " << success << std::endl; }
+				//std::cout << "Write code: " << success_code << std::endl;
+				if(success_code != 0) { std::cout << "Error writing to database: " << success_code << std::endl; }
 			}
 			std::cout << std::endl << std::endl;
 			
