@@ -8,6 +8,7 @@
 #include <Adafruit_BME280.h>
 #include <ESP8266WiFi.h>
 #include <WiFiClientSecure.h>
+
 #include "defines.h"
 #include "ccs811.h"
 #define DEVID 3
@@ -33,7 +34,7 @@ Adafruit_BME280 bme; // I2C
 
 
 void setup() {
-  //Serial.begin(115200);
+  Serial.begin(115200);
   //Serial.setTimeout(2000);
   //delay(500);
   pinMode(LED_BUILTIN, OUTPUT);

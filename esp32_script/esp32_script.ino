@@ -21,7 +21,7 @@
 #define MAX_TIMEOUT 10000
 
 WiFiMulti WiFiMulti;
-CCS811 ccs(23); // arg1 = nWAKE
+CCS811 ccs(10); // 10 = D34; arg1 = nWAKE
 
 RTC_DATA_ATTR bool initialized = false;
 
@@ -62,17 +62,17 @@ void setup() {
     failed = (diff) > MAX_TIMEOUT;
 
     ccs.read(&eco2, &etvoc, &errstat, &raw);
-    Serial.println(etvoc);
+    Serial.println("co2: "+ String(eco2) + "; etVoc: "+ String(etvoc));
     delay(1000);
   }
 
   bool success = false;
   bool temp_err = false;
   startTime = millis();
-  while(!success && !temp_err) {
-    success = getTempTc(temp);
-    temp_err = millis()-startTime > MAX_TIMEOUT;  
-  }
+  //while(!success && !temp_err) {
+  //  success = getTempTc(temp);
+  //  temp_err = millis()-startTime > MAX_TIMEOUT;  
+  //}
 
 
   if (failed) Serial.println("Reached MAX_TIMEOUT at read -- skipping");
