@@ -43,10 +43,29 @@ int main() {
 			res.set_content("Hello World", "text/plain");
 			});
 
+
+	svr.Get("/status", [&last_data](const Request &req, Response &res) {
+			string response_string("");
+			for(auto data_point : last_data) {
+				response_string += "---------------------\n";
+				int devid = data_point.first;
+				auto data = data_point.second;
+				response_string += "Devid: " + to_string(devid) + "\n";
+				response_string += (string)std::ctime(&data.first)+ "\n"+ data.second;
+				response_string += "\n\n";
+			}
+			res.set_content(response_string, "text/plain");
+
+			});
+
+	// request time and values of latest data point with devid
 	svr.Get("/query", [&last_data](const Request &req, Response &res) {
+			//get devid from request
 			int devid = stoi((req.params.find("devid")->second));
+			//get point of device from public map
 			auto last_point = last_data[devid]; 
 
+			//return time and point
 			res.set_content((string)std::ctime(&last_point.first)+ "\n\r"+ last_point.second, "application/json");	
 			});
 
@@ -62,8 +81,18 @@ int main() {
 				if(pt.get<std::string>("key") != secret) {
 					throw;
 				}
+
+				//string contains what we want to save
+				auto temp_str = received_string.str();		
+
+				//removing the key to avoid leaking
+				auto pos = temp_str.find(secret);
+				temp_str.erase(pos, secret.length());
+				temp_str.insert(pos, "removed");
+
+				//get current time and save it alongside the data
 				time_t time = std::time(nullptr);
-				last_data[devid] = pair<time_t, string> (time, received_string.str());
+				last_data[devid] = pair<time_t, string> (time, temp_str);
 				//last_data.insert(std::pair<int,std::string>(devid, received_string.str()));
 			} catch(...) {
 				res.set_content("Failed to parse json", "text/html");
