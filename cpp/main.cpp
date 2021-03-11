@@ -2,6 +2,8 @@
 #include "./cpp-httplib/httplib.h"
 #include <stdio.h>
 #include <sstream>
+#include <utility>
+#include <vector>
 #include "influxdb.hpp"
 #include <boost/property_tree/json_parser.hpp>
 #include "../keyfiles/secret.h"
@@ -22,6 +24,8 @@ int main() {
 	SSLServer svr(CERT_FILE,KEY_FILE);
 	influxdb_cpp::server_info si("127.0.0.1",8086, "data");
 
+	map<int, pair<time_t, string>> last_data;
+
 	std::cout << "------------------ ESP SERVER ----------------" << std::endl;
 	if(!test_if_file_exists(CERT_FILE)) {
 	    std::cout << "Couldn't find CERT file." << std::endl
@@ -39,7 +43,14 @@ int main() {
 			res.set_content("Hello World", "text/plain");
 			});
 
-	svr.Post("/submit", [&si](const Request &req, Response &res) {
+	svr.Get("/query", [&last_data](const Request &req, Response &res) {
+			int devid = stoi((req.params.find("devid")->second));
+			auto last_point = last_data[devid]; 
+
+			res.set_content((string)std::ctime(&last_point.first)+ "\n\r"+ last_point.second, "application/json");	
+			});
+
+	svr.Post("/submit", [&si, &last_data](const Request &req, Response &res) {
 			int devid(0);					
 			std::stringstream received_string;					// stringstream containing request body (data)
 			received_string << req.body;						// putting data into stringstream
@@ -51,6 +62,9 @@ int main() {
 				if(pt.get<std::string>("key") != secret) {
 					throw;
 				}
+				time_t time = std::time(nullptr);
+				last_data[devid] = pair<time_t, string> (time, received_string.str());
+				//last_data.insert(std::pair<int,std::string>(devid, received_string.str()));
 			} catch(...) {
 				res.set_content("Failed to parse json", "text/html");
 				return;
