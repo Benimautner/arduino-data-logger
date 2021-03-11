@@ -15,7 +15,7 @@
 #define RTCMEMORYSTART 65
 #define MAX_TIMEOUT 10000
 #define BME_ADDR 0x76
-#define SEALEVELPRESSURE_HPA (1013.25)
+#define SEA_LEVEL_PRESSURE_HPA (1013.25)
 
 
 struct {
@@ -40,7 +40,6 @@ void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
   Wire.begin();
   
-  uint16_t eco2, etvoc, errstat, raw;
   String out;
   bool sent = false;
   bool failed = false;
@@ -55,8 +54,6 @@ void setup() {
       Serial.println("Connection to css811 failed");
       rtcMem.err = true;
     }
-
-
     rtcMem.initialized = true;
     Serial.println("Setup Done");
   }
@@ -83,29 +80,6 @@ void setup() {
 
 void loop() {}
 
-
-/*
-  bool getTempTc(int& rtnval) {
-  int temp = 0;
-  Wire.beginTransmission(TC74A7ADDR);
-  Wire.write(0x00);
-  // request 1 byte from sensor
-  Wire.requestFrom(TC74A7ADDR, 1);
-
-  if (Wire.available()) {
-    temp = Wire.read();
-    if (temp > 127) {
-      temp = 255 - temp + 1;
-      temp = temp * -1;
-    }
-    Wire.endTransmission();
-    rtnval = temp;
-    return true;
-  } else {
-    return false;
-  }
-  }
-*/
 
 void prepareDoc(StaticJsonDocument<capacity>& doc) {
   doc["key"] = KEY;

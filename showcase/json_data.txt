@@ -1,0 +1,9 @@
+{
+	"key" : "thisisaprivatekey",
+	"devid" : 0,
+	"measurements" : 
+	{
+		"pressure" : "50.49",
+		"temperature" : "13.2"
+	}
+}

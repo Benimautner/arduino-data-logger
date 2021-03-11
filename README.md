@@ -1,4 +1,4 @@
-### Build from source:
+### How to use:
 - install dependencies
 - clone with submodules
 - build submodules with "cmake ." and "make"
@@ -12,3 +12,4 @@
 
 ### Tested on:
 - ESP32 Dev Module
+- ESP8266EX LOLIN Wemos D1 Mini Pro knockoff
