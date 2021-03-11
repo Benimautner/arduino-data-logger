@@ -77,6 +77,7 @@ int main() {
 			received_string << req.body;						// putting data into stringstream
 			string secret = SECRET;							// creating string with constant secret
 			boost::property_tree::ptree pt;						// property tree is almost like a dictionary (key & value pairs) 
+			time_t curr_time = std::time(nullptr);
 			try {
 				boost::property_tree::read_json(received_string, pt);		// filling property tree
 				devid = std::stoi(pt.get<std::string>("devid"));
@@ -93,8 +94,7 @@ int main() {
 				temp_str.insert(pos, "removed");
 
 				//get current time and save it alongside the data
-				time_t time = std::time(nullptr);
-				last_data[devid] = pair<time_t, string> (time, temp_str);
+				last_data[devid] = pair<time_t, string> (curr_time, temp_str);
 				//last_data.insert(std::pair<int,std::string>(devid, received_string.str()));
 			} catch(...) {
 				res.set_content("Failed to parse json", "text/html");
@@ -105,6 +105,7 @@ int main() {
 			sprintf(s,"%d", devid);
 
 			std::cout << "Device Id: " << devid << std::endl;
+			cout << "Time: " << ctime(&curr_time);
 			int value_location = 50;
 			for(boost::property_tree::ptree::value_type &measurement : pt.get_child("measurements")) {
 				string property_string = "Property: " + measurement.first;
