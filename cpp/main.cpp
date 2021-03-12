@@ -53,7 +53,7 @@ int main() {
 				int devid = data_point.first;
 				auto data = data_point.second;
 				response_string += "Devid: " + to_string(devid) + "\n";
-				response_string += (string)std::ctime(&data.first)+ "\n"+ data.second;
+				response_string += (string)std::ctime(&data.first) + data.second;
 				response_string += "\n\n";
 			}
 			res.set_content(response_string, "text/plain");
@@ -68,7 +68,7 @@ int main() {
 			auto last_point = last_data[devid]; 
 
 			//return time and point
-			res.set_content((string)std::ctime(&last_point.first)+ "\n\r"+ last_point.second, "application/json");	
+			res.set_content((string)std::ctime(&last_point.first)+ last_point.second, "application/json");	
 			});
 
 	svr.Post("/submit", [&si, &last_data](const Request &req, Response &res) {
