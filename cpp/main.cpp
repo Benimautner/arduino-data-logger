@@ -40,6 +40,16 @@ int main() {
 	    return 1;
 	}
 
+	svr.Get("/", [](const Request &req, Response &res) {
+			string response = 
+			"<h2>ESP temperature probes</h2>"
+			"<a href=\"/status\"> Status</a>"
+			"<br>"
+			"<a href=\"query\">Query individual Device</a>";
+			res.set_content(response, "text/html");
+
+			});
+
 	svr.Get("/text", [](const Request &req, Response &res) {
 			std::cout << "Request received" << std::endl;
 			res.set_content("Hello World", "text/plain");
@@ -63,10 +73,21 @@ int main() {
 	// request time and values of latest data point with devid
 	svr.Get("/query", [&last_data](const Request &req, Response &res) {
 			//get devid from request
-			int devid = stoi((req.params.find("devid")->second));
+			auto param_devid = req.params.find("devid");
+			bool err = false;
+			int devid;
+			pair<time_t, string> last_point;
+			try {
+				devid = stoi((param_devid->second));
+				last_point = last_data.at(devid); 
+			} catch(...) {
+				err = true;
+			}
+			if(param_devid == req.params.end() || err) {
+				res.set_content("Use URL like that: \"/query?devid=\" followed by your device id.", "text/html");
+				return;
+			}
 			//get point of device from public map
-			auto last_point = last_data[devid]; 
-
 			//return time and point
 			res.set_content((string)std::ctime(&last_point.first)+ last_point.second, "application/json");	
 			});
