@@ -1,7 +1,3 @@
-#include <ccs811.h>
-
-#include <ArduinoJson.h>
-
 #include <Wire.h>
 #include <SPI.h>
 #include <Adafruit_Sensor.h>
@@ -9,72 +5,110 @@
 #include <ESP8266WiFi.h>
 #include <WiFiClientSecure.h>
 
+#include <ccs811.h>
+#include <ArduinoJson.h>
+#include <LiquidCrystal_I2C.h>
+
 #include "defines.h"
 #include "ccs811.h"
 #define DEVID 3
-#define RTCMEMORYSTART 65
 #define MAX_TIMEOUT 10000
 #define BME_ADDR 0x76
 #define SEA_LEVEL_PRESSURE_HPA (1013.25)
 
 
-struct {
-  bool initialized;
+typedef struct {
   bool err;
-} rtcMem;
+  bool initialized;
+  uint8_t cnt;
+} rtc_mem_t;
+
+rtc_mem_t rtc_mem;
 
 const int capacity = JSON_OBJECT_SIZE(10);
 StaticJsonDocument<capacity> doc;
 
 int temp;
 
-X509List cert(rootCACertificate);
+LiquidCrystal_I2C lcd(0x27, 20, 4, LCD_BACKLIGHT);
 
 Adafruit_BME280 bme; // I2C
 
 
 void setup() {
+  ESP.rtcUserMemoryRead(0, (uint32_t*) &rtc_mem, sizeof(rtc_mem));
   Serial.begin(115200);
   //Serial.setTimeout(2000);
-  //delay(500);
   pinMode(LED_BUILTIN, OUTPUT);
   Wire.begin();
-  
+  lcd.init();
+
+  rtc_mem.err = rtc_mem.err ? true : false;
+  rtc_mem.initialized = false;
+
+
   String out;
-  bool sent = false;
-  bool failed = false;
-  bool data_ready = false;
+
 
   Wire.begin();                      // Setup iic/twi
   prepareDoc(doc);
 
 
-  if (!rtcMem.initialized) {
-    if (!bme.begin(BME_ADDR)) {
-      Serial.println("Connection to css811 failed");
-      rtcMem.err = true;
-    }
-    rtcMem.initialized = true;
-    Serial.println("Setup Done");
+  if (!bme.begin(BME_ADDR)) {
+    Serial.println("Connection to css811 failed");
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("ERROR BME280");
+    delay(2000);
+    rtc_mem.err = true;
+  } else {
+    Serial.println("Successfully initialized");
+    rtc_mem.err = false;
+  }
+  rtc_mem.initialized = true;
+  Serial.println("Setup Done");
+
+
+  float temperature = 0;
+  float pressure = 0;
+  float humidity = 0;
+
+  if (!rtc_mem.err) {
+    temperature = bme.readTemperature();
+    pressure = bme.readPressure() / 100.0F;
+    humidity = bme.readHumidity();
   }
 
 
-  doc["measurements"]["temperature"] = bme.readTemperature();
-  doc["measurements"]["pressure"] = bme.readPressure() / 100.0F;
-  doc["measurements"]["humidity"] = bme.readHumidity();
+  doc["measurements"]["temperature"] = temperature;
+  doc["measurements"]["pressure"] = pressure;
+  doc["measurements"]["humidity"] = humidity;
 
   Serial.print("read temp: ");
   Serial.println((float)doc["measurements"]["temperature"]);
 
+
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Temp:" + String(temperature) + "C");
+  lcd.setCursor(0, 1);
+  lcd.print("Pres:" + String(pressure) + "hPa");
+
+
   serializeJson(doc, out);
   digitalWrite(LED_BUILTIN, 1);
   connectWifi();
-  sendData(out);
+  if(!rtc_mem.err) {
+    sendData(out);
+  }
   digitalWrite(LED_BUILTIN, 0);
 
   delay(1000);
   Serial.println("going to sleep");
   Serial.flush();
+
+  ESP.rtcUserMemoryWrite(0, (uint32_t*) &rtc_mem, sizeof(rtc_mem));
+
   ESP.deepSleep(10e6);
 }
 
