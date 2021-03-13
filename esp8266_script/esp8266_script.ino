@@ -30,7 +30,7 @@ StaticJsonDocument<capacity> doc;
 
 int temp;
 
-LiquidCrystal_I2C lcd(0x27, 20, 4, LCD_BACKLIGHT);
+LiquidCrystal_I2C lcd(0x27, 20, 4);
 
 Adafruit_BME280 bme; // I2C
 
@@ -41,6 +41,7 @@ void setup() {
   //Serial.setTimeout(2000);
   pinMode(LED_BUILTIN, OUTPUT);
   Wire.begin();
+  lcd.backlight(); //enabling it before initializing to avoid flashing
   lcd.init();
 
   rtc_mem.err = rtc_mem.err ? true : false;
