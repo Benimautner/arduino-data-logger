@@ -99,7 +99,7 @@ void setup() {
   serializeJson(doc, out);
   digitalWrite(LED_BUILTIN, 1);
   connectWifi();
-  if(!rtc_mem.err) {
+  if (!rtc_mem.err) {
     sendData(out);
   }
   digitalWrite(LED_BUILTIN, 0);
@@ -125,11 +125,21 @@ void prepareDoc(StaticJsonDocument<capacity>& doc) {
 }
 
 void connectWifi() {
+  bool failed = false;
   WiFi.mode(WIFI_STA);
   WiFi.begin(WLAN_SSID, WLAN_PASSWD);
-  while ((WiFi.status() != WL_CONNECTED)) {
+  int startTime = millis();
+  while ((WiFi.status() != WL_CONNECTED) && !failed) {
+    int diff = millis() - startTime;
+    failed = (diff) > MAX_TIMEOUT;
     delay(500);
     Serial.print(".");
+  }
+  if(failed) {
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print("Error Connecting to Wifi");
+    ESP.deepSleep(10e6);
   }
   Serial.println("Wifi connected");
 }
