@@ -1,6 +1,7 @@
 #include <ccs811.h>
 
 #include <ArduinoJson.h>
+#include <mh-z14a.h>
 
 #include <Wire.h>
 #include <WiFi.h>
@@ -18,10 +19,11 @@
 #define uS_TO_S_FACTOR 1000000ULL  /* Conversion factor for micro seconds to seconds */
 #define TIME_TO_SLEEP  5        /* Time ESP32 will go to sleep (in seconds) */
 
-#define MAX_TIMEOUT 10000
+#define MAX_TIMEOUT 20000
 
 WiFiMulti WiFiMulti;
 CCS811 ccs(10); // 10 = D34; arg1 = nWAKE
+Z14A sensor;
 
 RTC_DATA_ATTR bool initialized = false;
 
@@ -42,6 +44,7 @@ void setup() {
   Serial.begin(115200);
   Wire.begin();                      // Setup iic/twi
   prepareDoc(doc);
+  sensor.init();
 
 
   if (!initialized) {
@@ -62,7 +65,7 @@ void setup() {
     failed = (diff) > MAX_TIMEOUT;
 
     ccs.read(&eco2, &etvoc, &errstat, &raw);
-    Serial.println("co2: "+ String(eco2) + "; etVoc: "+ String(etvoc));
+    Serial.println("co2: " + String(eco2) + "; etVoc: " + String(etvoc));
     delay(1000);
   }
 
@@ -71,8 +74,13 @@ void setup() {
   startTime = millis();
   //while(!success && !temp_err) {
   //  success = getTempTc(temp);
-  //  temp_err = millis()-startTime > MAX_TIMEOUT;  
+  //  temp_err = millis()-startTime > MAX_TIMEOUT;
   //}
+  int co2_concentration = 0;
+
+  if (sensor.getValue(co2_concentration) == Z14A_OK) {
+    doc["measurements"]["realco2"] = co2_concentration;
+  }
 
 
   if (failed) Serial.println("Reached MAX_TIMEOUT at read -- skipping");
@@ -126,8 +134,16 @@ void prepareDoc(StaticJsonDocument<capacity>& doc) {
 void connectWifi() {
   WiFi.mode(WIFI_STA);
   WiFiMulti.addAP(WLAN_SSID, WLAN_PASSWD);
-  while ((WiFiMulti.run() != WL_CONNECTED)) {
+  bool conn_err = false;
+  int start_time = millis();
+  while ((WiFiMulti.run() != WL_CONNECTED) || !conn_err) {
     Serial.print(".");
+    conn_err = millis()-start_time > MAX_TIMEOUT;
+  }
+  if(conn_err) {
+    // error connecting to wifi. resetting
+    // starting sleeping prematurely
+    esp_deep_sleep_start();
   }
 }
 
