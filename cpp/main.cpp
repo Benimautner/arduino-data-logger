@@ -103,7 +103,8 @@ int main() {
 				boost::property_tree::read_json(received_string, pt);		// filling property tree
 				devid = std::stoi(pt.get<std::string>("devid"));
 				if(pt.get<std::string>("key") != secret) {
-					throw;
+				cout << "Received data with wrong key" << endl;	
+				throw;
 				}
 
 				//string contains what we want to save
