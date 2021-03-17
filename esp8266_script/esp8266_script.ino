@@ -11,7 +11,6 @@
 
 #include "defines.h"
 #include "ccs811.h"
-#define DEVID 3
 #define MAX_TIMEOUT 10000
 #define BME_ADDR 0x76
 #define SEA_LEVEL_PRESSURE_HPA (1013.25)
@@ -52,6 +51,7 @@ void setup() {
 
 
   Wire.begin();                      // Setup iic/twi
+
   prepareDoc(doc);
 
 
