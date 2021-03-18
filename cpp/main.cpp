@@ -92,6 +92,10 @@ int main() {
 			res.set_content((string)std::ctime(&last_point.first)+ last_point.second, "application/json");	
 			});
 
+	svr.set_error_handler([](const Request &req, Response &res) {
+			res.set_content("An Error occured while loading this web page", "text/plain");
+			});
+
 	svr.Post("/submit", [&si, &last_data](const Request &req, Response &res) {
 			int devid(0);					
 			std::stringstream received_string;					// stringstream containing request body (data)
