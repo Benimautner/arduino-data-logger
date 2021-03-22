@@ -92,6 +92,10 @@ int main() {
 			res.set_content((string)std::ctime(&last_point.first)+ last_point.second, "application/json");	
 			});
 
+	svr.set_error_handler([](const Request &req, Response &res) {
+			res.set_content("An Error occured while loading this web page", "text/plain");
+			});
+
 	svr.Post("/submit", [&si, &last_data](const Request &req, Response &res) {
 			int devid(0);					
 			std::stringstream received_string;					// stringstream containing request body (data)
@@ -103,7 +107,8 @@ int main() {
 				boost::property_tree::read_json(received_string, pt);		// filling property tree
 				devid = std::stoi(pt.get<std::string>("devid"));
 				if(pt.get<std::string>("key") != secret) {
-					throw;
+				cout << "Received data with wrong key" << endl;	
+				throw;
 				}
 
 				//string contains what we want to save
