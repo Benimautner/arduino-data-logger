@@ -1,0 +1,22 @@
+<html>
+
+<body>
+<form action="/get_data_as_svg"><label for="fname">Device ID:</label> <br /><input id="devid" name="devid" type="text" /><br /><label for="data_type">Wähle einen Datentyp: </label> <br /><select id="data_type" name="data_type">
+	<option value="temperature">Temperatur</option>
+	<option value="humidity">Luftfeuchtigkeit</option>
+	<option value="pressure">Druck</option>
+</select><br /><br /><label for="time_frame">Wähle einen Zeitraum: </label> <br /><select id="time_frame" name="time_frame">
+	<option value="24h">Letzte 24 Stunden</option>
+	<option value="7d">Letzte 7 Tage</option>
+	<option value="15d">Letzte 15 Tage</option>
+	<option value="30d">Letzte 30 Tage</option>
+	<option value="60d">Letzte 60 Tage</option>
+</select><br /><br /><label for="group_by">Wähle einen Zeitraum, nach dem Gruppiert werden soll: </label> <br /><select id="group_by" name="group_by">
+	<option value="10m">10 Minuten</option>
+	<option value="30m">30 Minuten</option>
+	<option value="12h">Halbtagsdurchschnitt (12h)</option>
+	<option value="24h">Tagesdurchschnitt</option>
+	<option value="30d">Wochendurchschnitt</option>
+</select><br /><br /><input type="submit" value="Submit" /></form>
+</body>
+</html>

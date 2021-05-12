@@ -6,6 +6,13 @@
 #include <vector>
 #include <iostream>
 #include <iomanip>
+#include <string>
+#include <fstream>
+#include <streambuf>
+#include <algorithm>
+#include <regex>
+
+#include "xpjson.hpp"
 #include "influxdb.hpp"
 #include <boost/property_tree/json_parser.hpp>
 #include "../keyfiles/secret.h"
@@ -20,11 +27,11 @@ bool test_if_file_exists(const std::string& name) {
 }
 
 
-int main() {
+int main(int argc, char* argv[]) {
 	using namespace httplib;
 	using namespace std;
 	SSLServer svr(CERT_FILE,KEY_FILE);
-	influxdb_cpp::server_info si("127.0.0.1",8086, "data");
+	influxdb_cpp::server_info si("127.0.0.1",8086, "new_data");
 
 	map<int, pair<time_t, string>> last_data;
 
@@ -39,6 +46,11 @@ int main() {
 	    << ERR_MISSING_FILES_CORR << std::endl;
 	    return 1;
 	}
+
+	ifstream t("build_query.html");
+	stringstream buffer;
+	buffer << t.rdbuf();
+	string query_builder_file_string(buffer.str());
 
 	svr.Get("/", [](const Request &req, Response &res) {
 			string response = 
@@ -90,6 +102,120 @@ int main() {
 			//get point of device from public map
 			//return time and point
 			res.set_content((string)std::ctime(&last_point.first)+ last_point.second, "application/json");	
+			});
+
+	svr.Get("/query_builder", [&](const Request &req, Response &res) {
+			res.set_content((query_builder_file_string), "text/html");
+			});
+
+	svr.Get("/get_data_as_svg", [&](const Request &req, Response &res) {
+			const regex time_regex("[0-9]{1,}[a-z]");
+			const regex name_regex("[a-z]*");
+			const regex number_regex("[0-9]*");
+			smatch base_match;
+
+			string query("select mean(*) from ");
+			string response;
+			string time_frame("24h");
+			string data_type("temperature");
+			string devid("3");
+			string group_by("1m");
+
+			if(req.has_param("time_frame")) {
+				time_frame = string(req.params.find("time_frame")->second);
+				if(!regex_match(time_frame, time_regex)) {
+					cout << "Caught idiot!" << endl;
+					return;
+				}
+			}
+
+			if(req.has_param("data_type")) {
+				data_type = string(req.params.find("data_type")->second);
+				if(!regex_match(data_type, name_regex)) {
+					cout << "Caught idiot!" << endl;
+					return;
+				}
+			}
+			if(req.has_param("devid")) {
+				devid = string(req.params.find("devid")->second);
+				if(!regex_match(devid, number_regex)) {
+					cout << "Caught idiot!" << endl;
+					return;
+				}
+			}
+			if(req.has_param("group_by")) {
+				group_by = string(req.params.find("group_by")->second);
+				if(!regex_match(group_by, time_regex)) {
+					cout << "Caught idiot!" << endl;
+					return;
+				}
+			}
+			
+			query.append(data_type);
+			query.append(" where time > now() - ");
+			query.append(time_frame);
+			query.append(" and \"devid\"='");
+			query.append(devid);
+			query.append("'");
+			query.append(" GROUP BY time(");
+			query.append(group_by);
+			query.append(")");
+			cout << "Query: "<< query << endl;
+			influxdb_cpp::query(response, query, si);
+
+    			string http_response;
+			string seperator(",");
+		try {	
+			JSON::Value json_obj;
+			size_t ret = json_obj.read(response);
+			
+			cout << "Json length: " << ret << " response length: " << response.length() << endl;
+			//assert(ret == response.length());
+
+
+			JSON::Array& values = json_obj["results"][0]["series"][0]["values"].a();
+			JSON::Array& header  = json_obj["results"][0]["series"][0]["columns"].a();
+			JSON::Object& name_o = json_obj["results"][0]["series"][0].o();
+			
+			string data_type = name_o["name"];
+
+			http_response
+				.append("timestamp").append(seperator)
+				.append(data_type).append(seperator)
+				.append("value").append("<br>");
+
+			for(size_t i = 0; i < values.size(); ++i) {
+				long unsigned int time = values[i][0];
+				//string devid = values[i][1];
+				float value;
+				try {
+					value = values[i][1];
+				} catch(...) {
+					try {
+					int i_value = values[i][1];
+					value = i_value * 1.0f;
+					} catch (...) {
+						continue;
+					}
+				}
+				string s_value(to_string(value));
+				s_value.insert(0,"\"");
+				replace(s_value.begin(), s_value.end(), '.', ',');
+				s_value.append("\"");
+				http_response
+					.append(to_string(time)) .append(seperator)
+					.append(devid)		 .append(seperator)
+					.append(s_value).append("<br>");
+			}
+			http_response.append("\n");
+		} catch (exception &e) {
+			cout << "Exception: " << e.what() << endl;
+			http_response.clear();
+		}
+
+
+			res.set_content((http_response.empty()) ? response : http_response, "text/html");
+			//  time > now() - 24h
 			});
 
 	svr.set_error_handler([](const Request &req, Response &res) {
@@ -153,7 +279,15 @@ int main() {
 			return;
 			});
 	
-	svr.listen("0.0.0.0", 4445);
+	int port = 4445;
+	if(argc	> 1) {
+		try {
+			port = std::atoi(argv[1]);
+		} catch(...) {
+			cout << "error parsing port" << endl;
+		}
+	}
+	svr.listen("0.0.0.0", port);
 	std::cout << "Server Stopped" << std::endl;
 	return 0;
 
