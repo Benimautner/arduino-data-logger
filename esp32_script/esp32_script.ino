@@ -19,7 +19,7 @@
 #define uS_TO_S_FACTOR 1000000ULL  /* Conversion factor for micro seconds to seconds */
 #define TIME_TO_SLEEP  5        /* Time ESP32 will go to sleep (in seconds) */
 
-#define MAX_TIMEOUT 20000
+#define MAX_TIMEOUT 60000
 
 WiFiMulti WiFiMulti;
 CCS811 ccs(10); // 10 = D34; arg1 = nWAKE
@@ -74,7 +74,7 @@ void setup() {
   startTime = millis();
   //while(!success && !temp_err) {
   //  success = getTempTc(temp);
-  //  temp_err = millis()-startTime > MAX_TIMEOUT;
+  //  temp_err = millis()-startTime > TIMEOUT;
   //}
   int co2_concentration = 0;
 
@@ -136,13 +136,16 @@ void connectWifi() {
   WiFiMulti.addAP(WLAN_SSID, WLAN_PASSWD);
   bool conn_err = false;
   int start_time = millis();
-  while ((WiFiMulti.run() != WL_CONNECTED) || !conn_err) {
+  while ((WiFiMulti.run() != WL_CONNECTED) && !conn_err) {
     Serial.print(".");
     conn_err = millis()-start_time > MAX_TIMEOUT;
+    delay(500);
   }
   if(conn_err) {
     // error connecting to wifi. resetting
     // starting sleeping prematurely
+    Serial.println("Reached max timeout while connecting to wifi");
+    Serial.flush();
     esp_deep_sleep_start();
   }
 }
