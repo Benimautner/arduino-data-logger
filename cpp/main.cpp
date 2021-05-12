@@ -57,7 +57,9 @@ int main(int argc, char* argv[]) {
 			"<h2>ESP temperature probes</h2>"
 			"<a href=\"/status\"> Status</a>"
 			"<br>"
-			"<a href=\"query\">Query individual Device</a>";
+			"<a href=\"query\">Query individual Device</a>"
+			"<br>"
+			"<a href=\"query_builder\">Get Data as SVG</a>";
 			res.set_content(response, "text/html");
 
 			});
